@@ -23,7 +23,6 @@ Create md for Hoisting
 Create md for BEM in CSS
 Create md for Closure in JavaScript
 Create md for Hooks in React
-Create md for CORS in WebStandards
 ```
 
 ---
@@ -116,8 +115,7 @@ Hooks, VirtualDOM, StateManagement, ComponentLifecycle, Props, Keys, Performance
 ### Performance/
 LazyLoading, CodeSplitting, BundleOptimization, CachingStrategies, WebVitals, ImageOptimization, etc.
 
-### WebStandards/
-CORS, CSP, XSS, CSRF, Authentication, Security, Privacy, HTTP, DNS, etc.
+and auto-detection.
 
 ---
 

@@ -41,10 +41,6 @@ frontend-handbook/
 │   ├── LazyLoading.md
 │   ├── BundleOptimization.md
 │   └── ...
-├── WebStandards/
-│   ├── CORS.md
-│   ├── CSP.md
-│   └── ...
 ├── README.md
 └── CLAUDE.md
 ```
