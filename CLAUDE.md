@@ -131,13 +131,15 @@ and auto-detection.
 "**Hoisting** is JavaScript's behavior of moving declarations to the top of their scope before code execution. Variables declared with `var` are hoisted with `undefined`, while `let` and `const` are hoisted but not initialized, causing a **Temporal Dead Zone**."
 
 ### Code Examples
+- **Keep examples SHORT** - focus on demonstrating the concept only
+- For longer logic: show only the relevant function/method with description comment, no full implementation
 - Modern ES6+ syntax
 - Include explanatory comments
-- Show both good and bad patterns when relevant
-- Keep focused and concise
+- Show both good and bad patterns when relevant (keep each pattern to 2-3 lines)
 - Use realistic variable names
+- **Goal**: Reader should understand the concept in 10 seconds, not study production code
 
-**Good Example**:
+**Good Example** (short and focused):
 ```javascript
 // Bad: Using var causes unexpected behavior
 for (var i = 0; i < 3; i++) {
@@ -147,6 +149,14 @@ for (var i = 0; i < 3; i++) {
 // Good: Using let scopes i to each iteration
 for (let i = 0; i < 3; i++) {
   setTimeout(() => console.log(i), 0); // 0, 1, 2
+}
+```
+
+**For longer logic** (show function signature with comment):
+```javascript
+// Function that validates and processes user data
+function processUserData(userData) {
+  // validates input, transforms data, returns result
 }
 ```
 

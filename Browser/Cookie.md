@@ -56,125 +56,77 @@ Cookie Attributes:
 
 ## Example
 
+### Setting Cookies
+
 ```javascript
-// Client-side: Setting cookies via JavaScript
+// Simple cookie
 document.cookie = 'username=john_doe';
 document.cookie = 'theme=dark';
 
-// Setting cookie with expiration (7 days from now)
+// With expiration (7 days)
 const date = new Date();
 date.setTime(date.getTime() + (7 * 24 * 60 * 60 * 1000));
 document.cookie = `username=john_doe; expires=${date.toUTCString()}`;
 
-// Setting cookie with multiple attributes
+// With attributes
 document.cookie = `sessionId=abc123; path=/; secure; samesite=Strict`;
+```
 
-// Reading cookies (returns all cookies as a string)
-console.log(document.cookie);  // "username=john_doe; theme=dark; sessionId=abc123"
+### Reading Cookies
 
-// Parsing cookies into an object
+```javascript
+// Get all cookies (string format)
+console.log(document.cookie);
+
+// Parse into object
 function parseCookies() {
   const cookies = {};
   document.cookie.split(';').forEach(cookie => {
     const [name, value] = cookie.trim().split('=');
-    if (name && value) {
-      cookies[name] = decodeURIComponent(value);
-    }
+    if (name && value) cookies[name] = decodeURIComponent(value);
   });
   return cookies;
 }
 
 const allCookies = parseCookies();
-console.log(allCookies);  // { username: 'john_doe', theme: 'dark', ... }
+```
 
-// Getting a specific cookie value
-function getCookie(name) {
-  const cookies = parseCookies();
-  return cookies[name] || null;
-}
+### Deleting Cookies
 
-const username = getCookie('username');  // 'john_doe'
-
-// Deleting a cookie (set expiration to past date)
+```javascript
+// Delete by setting to past date
 function deleteCookie(name) {
   document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
 }
 
-deleteCookie('theme');  // Cookie is deleted
+deleteCookie('theme');
+```
 
-// Server-side: Setting secure httpOnly cookie (JavaScript cannot access)
-// This is done in server response headers:
-// Set-Cookie: sessionId=abc123; Path=/; Secure; HttpOnly; SameSite=Strict; Max-Age=3600
+### Cookie Manager Utility
 
-// Client-side cookie utility class
+```javascript
 class CookieManager {
-  static set(name, value, options = {}) {
-    let cookie = `${encodeURIComponent(name)}=${encodeURIComponent(value)}`;
-
-    if (options.days) {
-      const date = new Date();
-      date.setTime(date.getTime() + (options.days * 24 * 60 * 60 * 1000));
-      cookie += `; expires=${date.toUTCString()}`;
-    }
-
-    if (options.path) cookie += `; path=${options.path}`;
-    if (options.domain) cookie += `; domain=${options.domain}`;
-    if (options.secure) cookie += '; secure';
-    if (options.sameSite) cookie += `; samesite=${options.sameSite}`;
-
-    document.cookie = cookie;
+  static set(name, value, days = 30) {
+    const date = new Date();
+    date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+    document.cookie = `${name}=${value}; expires=${date.toUTCString()}; path=/`;
   }
 
   static get(name) {
     const value = `; ${document.cookie}`;
     const parts = value.split(`; ${name}=`);
-    if (parts.length === 2) {
-      return decodeURIComponent(parts.pop().split(';').shift());
-    }
-    return null;
+    return parts.length === 2 ? parts.pop().split(';').shift() : null;
   }
 
   static delete(name) {
-    this.set(name, '', { days: -1 });
-  }
-
-  static getAll() {
-    const cookies = {};
-    document.cookie.split(';').forEach(cookie => {
-      const [name, value] = cookie.trim().split('=');
-      if (name && value) {
-        cookies[decodeURIComponent(name)] = decodeURIComponent(value);
-      }
-    });
-    return cookies;
+    this.set(name, '', -1);
   }
 }
 
 // Usage
-CookieManager.set('user_id', '12345', { days: 30, path: '/', secure: true, sameSite: 'Strict' });
-const userId = CookieManager.get('user_id');  // '12345'
-CookieManager.delete('user_id');
-
-// Practical: Remember user login
-function rememberLogin(email, password) {
-  // NEVER store passwords in cookies! Use secure tokens instead
-  CookieManager.set('email', email, { days: 30, secure: true });
-  // Password should be handled server-side with secure, httpOnly cookies
-}
-
-// Practical: Track user preferences
-function setUserPreferences(theme, language) {
-  CookieManager.set('theme', theme, { days: 365, path: '/' });
-  CookieManager.set('language', language, { days: 365, path: '/' });
-}
-
-// Retrieve and apply preferences on page load
-window.addEventListener('DOMContentLoaded', () => {
-  const theme = CookieManager.get('theme') || 'light';
-  const language = CookieManager.get('language') || 'en';
-  applyTheme(theme);
-  applyLanguage(language);
-});
+CookieManager.set('userId', '12345', 30);
+CookieManager.get('userId');
+CookieManager.delete('userId');
 ```
 
 ## Usage

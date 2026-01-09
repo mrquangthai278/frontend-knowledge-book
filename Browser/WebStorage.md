@@ -44,119 +44,67 @@ Comparison with Cookies:
 
 ## Example
 
+### localStorage - Persistent
+
 ```javascript
-// localStorage - Persistent storage
-// Storing data
+// Store data
 localStorage.setItem('username', 'john_doe');
-localStorage.setItem('theme', 'dark');
 localStorage.setItem('user', JSON.stringify({ id: 1, name: 'John' }));
 
-// Retrieving data
+// Retrieve data
 const username = localStorage.getItem('username');  // "john_doe"
-const user = JSON.parse(localStorage.getItem('user'));  // { id: 1, name: 'John' }
+const user = JSON.parse(localStorage.getItem('user'));
 
-// Checking if key exists
-if (localStorage.getItem('theme')) {
-  console.log('Theme preference found');
-}
+// Remove data
+localStorage.removeItem('username');
+localStorage.clear();  // Clear all
+```
 
-// Getting all keys
-for (let i = 0; i < localStorage.length; i++) {
-  const key = localStorage.key(i);
-  const value = localStorage.getItem(key);
-  console.log(`${key}: ${value}`);
-}
+### sessionStorage - Temporary
 
-// Removing data
-localStorage.removeItem('theme');
-
-// Clearing all storage
-localStorage.clear();
-
-// sessionStorage - Temporary storage (same API as localStorage)
+```javascript
+// Same API as localStorage, but cleared on tab close
 sessionStorage.setItem('sessionId', 'abc123');
-const sessionId = sessionStorage.getItem('sessionId');  // "abc123"
+const id = sessionStorage.getItem('sessionId');
 sessionStorage.removeItem('sessionId');
+```
 
-// Practical: Shopping cart persistence
-function saveCartToStorage(items) {
+### Shopping Cart Example
+
+```javascript
+function saveCart(items) {
   localStorage.setItem('cart', JSON.stringify(items));
 }
 
-function getCartFromStorage() {
+function getCart() {
   const cart = localStorage.getItem('cart');
   return cart ? JSON.parse(cart) : [];
 }
 
-const cart = [
-  { id: 1, name: 'Laptop', price: 999 },
-  { id: 2, name: 'Mouse', price: 25 }
-];
-saveCartToStorage(cart);
-const savedCart = getCartFromStorage();  // Persists even after page reload!
+saveCart([{ id: 1, name: 'Laptop', price: 999 }]);
+const cart = getCart();  // Persists after reload!
+```
 
-// Practical: Theme preference
+### Theme Preference
+
+```javascript
 function setTheme(theme) {
   localStorage.setItem('theme', theme);
   document.documentElement.setAttribute('data-theme', theme);
 }
 
-function loadTheme() {
-  const savedTheme = localStorage.getItem('theme') || 'light';
-  setTheme(savedTheme);
-  return savedTheme;
-}
+const savedTheme = localStorage.getItem('theme') || 'light';
+setTheme(savedTheme);
+```
 
-// Load theme on page load
-window.addEventListener('DOMContentLoaded', () => {
-  loadTheme();
-});
+### Sync Across Tabs
 
-// Listening for storage changes (useful for syncing across tabs)
+```javascript
 window.addEventListener('storage', (event) => {
   if (event.key === 'theme') {
-    console.log(`Theme changed to: ${event.newValue}`);
-    setTheme(event.newValue);
+    setTheme(event.newValue);  // Another tab changed theme
   }
 });
-
-// Checking available storage
-function checkStorageAvailable() {
-  try {
-    const test = '__storage_test__';
-    localStorage.setItem(test, test);
-    localStorage.removeItem(test);
-    return true;
-  } catch (e) {
-    return false;  // Storage full, disabled, or private mode
-  }
-}
-
-// Safe storage wrapper
-class SafeStorage {
-  static set(key, value) {
-    try {
-      localStorage.setItem(key, JSON.stringify(value));
-      return true;
-    } catch (e) {
-      console.error('Storage quota exceeded or unavailable', e);
-      return false;
-    }
-  }
-
-  static get(key) {
-    try {
-      const item = localStorage.getItem(key);
-      return item ? JSON.parse(item) : null;
-    } catch (e) {
-      console.error('Failed to parse stored value', e);
-      return null;
-    }
-  }
-}
-
-SafeStorage.set('user', { id: 1, name: 'Alice' });
-const user = SafeStorage.get('user');  // { id: 1, name: 'Alice' }
 ```
 
 ## Usage

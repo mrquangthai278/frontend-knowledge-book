@@ -36,60 +36,49 @@ Without leak (healthy):
 
 ## Example
 
+### Unremoved Event Listeners
+
 ```javascript
-// ❌ Bad: Memory Leak - Event listener never removed
-const button = document.getElementById('myButton');
+// ❌ Bad: Listener never removed
+const button = document.getElementById('btn');
+button.addEventListener('click', () => {
+  console.log('Clicked');
+});
+// Button removed from DOM but listener still holds reference
 
-function handleClick() {
-  console.log('Button clicked');
-}
-
-button.addEventListener('click', handleClick);
-// If button is later removed from DOM, the listener still holds a reference
-// Memory is not freed even though the button is gone
-
-// ✅ Good: Properly remove event listeners
-button.removeEventListener('click', handleClick);
+// ✅ Good: Remove listener when done
+const handler = () => console.log('Clicked');
+button.addEventListener('click', handler);
+button.removeEventListener('click', handler);  // Cleanup
 ```
 
+### Forgotten Timers
+
 ```javascript
-// ❌ Bad: Forgotten timer
-let counter = 0;
+// ❌ Bad: Timer runs forever
+setInterval(() => {
+  console.log('tick');
+}, 1000);  // Never cleared
 
-function startCounter() {
-  setInterval(() => {
-    counter++;
-    console.log(counter);
-  }, 1000); // This interval runs forever, never cleared
-}
+// ✅ Good: Store and clear timer
+const timerId = setInterval(() => {
+  console.log('tick');
+}, 1000);
 
-startCounter();
-
-// ✅ Good: Store and clear the timer
-let timerId;
-
-function startCounter() {
-  timerId = setInterval(() => {
-    counter++;
-    console.log(counter);
-  }, 1000);
-}
-
-function stopCounter() {
-  clearInterval(timerId); // Properly cleanup
-}
+clearInterval(timerId);  // Cleanup when done
 ```
 
+### Detached DOM Nodes
+
 ```javascript
-// ❌ Bad: Detached DOM nodes still referenced
+// ❌ Bad: DOM node still referenced after removal
 const element = document.getElementById('node');
-const cache = [element]; // Cache holds reference
+const cache = [element];
+element.remove();  // Still in memory via cache
 
-element.remove(); // Removed from DOM but still in memory via cache
-
-// ✅ Good: Clear references when removing DOM nodes
+// ✅ Good: Clear references
 element.remove();
-cache.length = 0; // Or cache = null; to release reference
+cache.length = 0;  // Or cache = null
 ```
 
 ## Usage

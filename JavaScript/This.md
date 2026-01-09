@@ -30,228 +30,103 @@ Function Call Context Determines 'this':
 
 ## Example
 
+### Method Call
+
 ```javascript
-// ============================================
-// 1. Global Scope
-// ============================================
-
-console.log(this);  // In browser: window
-                    // In Node.js: global
-                    // In module: {}
-
-// ============================================
-// 2. Method Call (this = object)
-// ============================================
-
 const person = {
   name: 'Alice',
   greet() {
-    console.log(`Hello, I'm ${this.name}`);
+    console.log(this.name);  // this = person
   }
 };
+person.greet();  // 'Alice'
+```
 
-person.greet();  // 'Hello, I'm Alice' (this = person)
+### Global Scope
 
-// ============================================
-// 3. Function Call (this = global/undefined in strict mode)
-// ============================================
+```javascript
+console.log(this);  // window (browser) or global (Node.js)
+function show() { console.log(this); }  // undefined in strict mode
+```
 
-function sayName() {
-  console.log(this.name);
-}
+### Constructor
 
-sayName();  // undefined (this = window/global)
-
-// In strict mode:
-function strictFunc() {
-  'use strict';
-  console.log(this);  // undefined
-}
-strictFunc();
-
-// ============================================
-// 4. Constructor Function (this = new instance)
-// ============================================
-
+```javascript
 function Person(name) {
-  this.name = name;
-  this.greet = function() {
-    console.log(`Hi, I'm ${this.name}`);
-  };
+  this.name = name;  // this = new instance
 }
-
 const alice = new Person('Alice');
-alice.greet();  // 'Hi, I'm Alice' (this = alice)
+```
 
-// ============================================
-// 5. Method Assignment Problem
-// ============================================
+### call(), apply(), bind()
 
+```javascript
+function greet(greeting) { console.log(`${greeting}, ${this.name}`); }
+
+greet.call({ name: 'Alice' }, 'Hello');        // call: invoke now
+greet.apply({ name: 'Bob' }, ['Hi']);          // apply: args as array
+const boundGreet = greet.bind({ name: 'Eve' }); // bind: return new function
+```
+
+### Arrow Functions (inherit this)
+
+```javascript
 const obj = {
   name: 'Object',
   method() {
-    console.log(this.name);
+    const arrow = () => console.log(this.name);  // inherited
+    arrow();  // 'Object'
   }
 };
+```
 
-obj.method();        // 'Object' (called on obj)
+### Method Lost in Assignment
 
-const fn = obj.method;
-fn();                // undefined (called standalone, this = window)
-
-// Solution: Use bind
-const boundFn = obj.method.bind(obj);
-boundFn();           // 'Object' (this always = obj)
-
-// ============================================
-// 6. call(), apply(), bind() - Explicit this
-// ============================================
-
-function introduce(greeting) {
-  console.log(`${greeting}, I'm ${this.name}`);
-}
-
-const person1 = { name: 'Alice' };
-const person2 = { name: 'Bob' };
-
-// call: invoke immediately, pass args individually
-introduce.call(person1, 'Hello');      // 'Hello, I'm Alice'
-
-// apply: invoke immediately, pass args as array
-introduce.apply(person2, ['Hi']);      // 'Hi, I'm Bob'
-
-// bind: return new function with fixed this
-const greetAlice = introduce.bind(person1);
-greetAlice('Hey');                     // 'Hey, I'm Alice'
-
-// ============================================
-// 7. Arrow Functions (inherit this)
-// ============================================
-
-const obj2 = {
-  name: 'Object',
-  regularMethod() {
-    console.log('Regular:', this.name);  // 'Object'
-
-    const arrowFunc = () => {
-      console.log('Arrow:', this.name);   // 'Object' (inherited)
-    };
-    arrowFunc();
-  },
-  wrongMethod: () => {
-    console.log('Arrow method:', this.name);  // undefined (this from outer scope)
-  }
+```javascript
+const obj = {
+  value: 42,
+  getValue() { return this.value; }
 };
 
-obj2.regularMethod();   // Regular: Object, Arrow: Object
-obj2.wrongMethod();     // Arrow method: undefined
+const fn = obj.getValue;
+fn();                         // undefined (this = window)
+obj.getValue.bind(obj)();     // 42 (bind fixes this)
+```
 
-// ============================================
-// 8. Event Handlers
-// ============================================
+### Event Handlers
 
-class Button {
-  constructor() {
-    this.text = 'Click me';
-  }
+```javascript
+// Wrong: this = element
+element.addEventListener('click', function() {
+  this.style.background = 'red';
+});
 
-  // Wrong: this = button element
-  setupWrong() {
-    document.getElementById('btn').addEventListener('click', function() {
-      console.log(this.text);  // undefined (this = button element)
-    });
-  }
+// Correct: this = class instance (arrow inherits)
+element.addEventListener('click', () => {
+  this.style.background = 'red';  // inherited from outer scope
+});
+```
 
-  // Correct: this = Button instance (arrow function)
-  setupCorrect() {
-    document.getElementById('btn').addEventListener('click', () => {
-      console.log(this.text);  // 'Click me' (this inherited from class)
-    });
-  }
+### Callbacks
 
-  // Also correct: use bind
-  setupBind() {
-    document.getElementById('btn').addEventListener('click', function() {
-      console.log(this.text);  // 'Click me'
-    }.bind(this));
-  }
-}
-
-// ============================================
-// 9. Class Methods
-// ============================================
-
-class Counter {
-  constructor(initialValue = 0) {
-    this.value = initialValue;
-  }
-
-  increment() {
-    this.value++;
-    console.log(this.value);
-  }
-
-  // Bound method (auto-bound in classes)
-  getCount = () => {
-    return this.value;
-  };
-}
-
-const counter = new Counter(5);
-counter.increment();      // 6 (this = counter)
-
-// But if you extract a method:
-const increment = counter.increment;
-// increment();           // Error: can't read property 'value' of undefined
-
-// Solution: bind in constructor
-class BetterCounter {
-  constructor(initialValue = 0) {
-    this.value = initialValue;
-    this.increment = this.increment.bind(this);
-  }
-
-  increment() {
-    this.value++;
-  }
-}
-
-// ============================================
-// 10. this in Callbacks
-// ============================================
-
+```javascript
 class DataFetcher {
-  constructor() {
-    this.data = [];
-  }
+  constructor() { this.data = []; }
 
-  // Problem: this is lost in callback
-  fetchWrong() {
+  // Problem: this is lost
+  fetch() {
     setTimeout(function() {
       console.log(this.data);  // undefined
     }, 1000);
   }
 
-  // Solution 1: arrow function
-  fetchCorrect1() {
-    setTimeout(() => {
-      console.log(this.data);  // [] (inherited)
-    }, 1000);
+  // Solutions:
+  fetchArrow() {
+    setTimeout(() => { console.log(this.data); }, 1000);  // inherited
   }
 
-  // Solution 2: bind
-  fetchCorrect2() {
-    setTimeout(function() {
-      console.log(this.data);  // []
-    }.bind(this), 1000);
-  }
-
-  // Solution 3: store this reference
-  fetchCorrect3() {
-    const self = this;
-    setTimeout(function() {
-      console.log(self.data);  // []
-    }, 1000);
+  fetchBind() {
+    setTimeout(function() { console.log(this.data); }.bind(this), 1000);
   }
 }
 ```

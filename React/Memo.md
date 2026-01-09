@@ -23,42 +23,29 @@ Parent re-renders → Child checks props → Props different? Re-render
 
 ## Example
 ```javascript
-// Without React.memo - child re-renders on every parent update
-const UserProfile = ({ name, age }) => {
-  console.log('UserProfile rendered');
-  return <div>{name} - {age}</div>;
-};
+// Without React.memo - always re-renders
+const UserProfile = ({ name, age }) => <div>{name} - {age}</div>;
 
-// With React.memo - child only re-renders if props change
-const MemoizedUserProfile = React.memo(({ name, age }) => {
-  console.log('MemoizedUserProfile rendered');
-  return <div>{name} - {age}</div>;
-});
+// With React.memo - only re-renders if props change
+const MemoizedUserProfile = React.memo(({ name, age }) => (
+  <div>{name} - {age}</div>
+));
 
-// Parent component
+// Parent: MemoizedUserProfile skips re-render when props are same
 const App = () => {
   const [count, setCount] = useState(0);
-
   return (
     <div>
-      <button onClick={() => setCount(count + 1)}>Increment: {count}</button>
-      {/* Re-renders every time parent updates */}
-      <UserProfile name="Alice" age={30} />
-
-      {/* Only re-renders if name or age props change */}
+      <button onClick={() => setCount(count + 1)}>Count: {count}</button>
       <MemoizedUserProfile name="Alice" age={30} />
     </div>
   );
 };
 
-// Custom comparison function - advanced control
-const CustomMemoComponent = React.memo(
-  ({ data, onUpdate }) => <div onClick={onUpdate}>{data.value}</div>,
-  (prevProps, nextProps) => {
-    // Return true if props are equal (DON'T re-render)
-    // Return false if props differ (DO re-render)
-    return prevProps.data.value === nextProps.data.value;
-  }
+// Custom comparison: control which prop changes trigger re-render
+React.memo(
+  ({ data }) => <div>{data.value}</div>,
+  (prev, next) => prev.data.value === next.data.value
 );
 ```
 

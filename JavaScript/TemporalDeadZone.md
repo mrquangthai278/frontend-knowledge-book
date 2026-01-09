@@ -53,84 +53,44 @@ let x / const x:
 ### Basic TDZ Example
 
 ```javascript
-// Accessing variable during TDZ
 console.log(x);  // ReferenceError: Cannot access 'x' before initialization
-
-let x = 5;
-console.log(x);  // 5
-
-// The variable is hoisted but in TDZ until the 'let' statement
+let x = 5;       // TDZ ends here at declaration
 ```
 
-### TDZ with Different Scopes
+### TDZ with Block Scope
 
 ```javascript
-// Global scope - no variable x
-console.log(typeof x); // undefined (safe check for global vars)
-
 {
-  // Block scope - TDZ starts here for x
-  console.log(x);  // ReferenceError! (x is hoisted but in TDZ)
+  console.log(x);  // ReferenceError (hoisted but in TDZ)
   let x = 10;      // TDZ ends here
-  console.log(x);  // 10
 }
+```
 
-// The same identifier x in different scopes
-var x = "outer";
+### TDZ Shadowing Issue
+
+```javascript
+let x = "outer";
 {
-  console.log(x); // ReferenceError! Not the outer x due to TDZ
-  let x = "inner";
+  console.log(x);  // ReferenceError! (not outer x, but hoisted inner x in TDZ)
+  let x = "inner"; // Shadows the outer x
 }
 ```
 
-### TDZ with Function Parameters
+### TDZ with Default Parameters
 
 ```javascript
-// Function parameters can have TDZ too
-const x = 10;
-
-function example(a = x) {
-  // x is in TDZ here because of the parameter default
-  console.log(x); // ReferenceError if x uses the parameter
+const value = 10;
+function fn(a = value) {
+  // value is accessible here (not in TDZ)
+  console.log(a);
 }
-
-// Better: Use parameter name carefully
-function goodExample(value = 5) {
-  console.log(value); // Works: parameter is initialized
-}
-```
-
-### TDZ with Loops
-
-```javascript
-// Bad: Accessing loop variable before declaration
-for (var i = 0; i < 3; i++) {
-  console.log(i); // Works - var is hoisted with undefined initially
-}
-
-// TDZ issue with let in loop
-for (let i = 0; i < 3; i++) {
-  if (i === 0) {
-    console.log(i); // Works - i is already declared and initialized
-  }
-}
-
-// Trying to use i before the loop creates TDZ
-console.log(i); // ReferenceError (i is in TDZ within block scope)
-for (let i = 0; i < 3; i++) {}
 ```
 
 ### TDZ with const
 
 ```javascript
-// const variables are also in TDZ until declaration
-console.log(PI); // ReferenceError: Cannot access 'PI' before initialization
-
-const PI = 3.14159;
-console.log(PI); // 3.14159
-
-// const MUST be initialized at declaration - cannot be reassigned
-const MAX_USERS;  // SyntaxError: Missing initializer
+console.log(PI);    // ReferenceError (TDZ)
+const PI = 3.14159; // TDZ ends here at declaration
 ```
 
 ## Usage
@@ -146,25 +106,17 @@ const MAX_USERS;  // SyntaxError: Missing initializer
 ### Real-world Example
 
 ```javascript
-// React component example - avoiding TDZ issues
-function UserProfile({ userId = defaultUserId }) {
-  // defaultUserId is in TDZ here if used in parameter
-  // Better approach:
-  const id = userId || 1;
-
-  const [user, setUser] = useState(null);
+// React hook - avoiding TDZ issues
+function UserProfile({ userId }) {
+  const id = userId || 1;  // Declare before use
 
   useEffect(() => {
-    // Good: variable declared before use
     const fetchUser = async () => {
       const response = await fetch(`/api/users/${id}`);
       return response.json();
     };
-
     fetchUser();
   }, [id]);
-
-  return <div>{user?.name}</div>;
 }
 ```
 

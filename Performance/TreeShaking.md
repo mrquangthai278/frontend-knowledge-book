@@ -72,6 +72,38 @@ const result2 = multiply(4, 2);
   - Avoid dynamic imports that prevent static analysis
   - Regularly audit bundle size to ensure dead code is removed
 
+## Production vs Development Tree Shaking
+
+Tree shaking behavior can differ significantly between development and production builds:
+
+### Development Build
+- Tree shaking may be **disabled** or less aggressive (faster rebuild)
+- Unused code often remains for easier debugging
+- Webpack config: `mode: 'development'` skips optimization
+- Result: Larger bundle, but readable code
+
+### Production Build
+- Tree shaking is **aggressive** and enabled by default
+- Bundler uses **Terser** or similar to remove dead code
+- Dead code elimination combined with minification
+- Result: Smaller bundle, but harder to debug
+
+**Example**: A utility file with 5 functions where only 1 is imported:
+```javascript
+// dev.bundle.js (300KB)
+// All 5 functions included for easier debugging
+
+// prod.bundle.js (100KB)
+// Only 1 function included, other 4 removed by tree-shaking + minification
+```
+
+### Why Tree Shaking Might Fail in Production
+
+- **CommonJS in dependencies**: If a third-party library uses CommonJS, tree shaking can't analyze it
+- **sideEffects not configured**: Misconfigured `sideEffects` flag prevents removal
+- **Dynamic imports**: Code using `require()` or dynamic `import()` can't be statically analyzed
+- **Module concatenation disabled**: Webpack's module concatenation improves tree-shaking; if disabled, it may not work
+
 ## FAQ / Interview Questions
 
 **Q: What is tree shaking and how does it work?**
@@ -94,6 +126,9 @@ A: **Tree shaking** removes unused code from modules. **Code splitting** divides
 **Q: Can tree shaking remove side effects?**
 A: Tree shaking is conservative—it won't remove code with **side effects** (code that modifies global state, imports with initialization logic, etc.). You can use `"sideEffects": false` in `package.json` to tell bundlers the module is safe to remove, but this should only be used if you're certain there are no side effects.
 
+**Q: Why does tree shaking work differently in production vs development?**
+A: In development, tree shaking is often disabled or minimized for faster rebuilds and easier debugging. In production, tree shaking is aggressive and combined with minification by Terser. This is why a 40% bundle increase can happen only in production—development might include debug code that gets tree-shaken in production, or vice versa. Always compare actual production builds to identify tree-shaking issues.
+
 ## References
 - [MDN Web Docs - Tree shaking](https://developer.mozilla.org/en-US/docs/Glossary/Tree_shaking)
 - [Webpack - Tree Shaking](https://webpack.js.org/guides/tree-shaking/)
@@ -101,4 +136,4 @@ A: Tree shaking is conservative—it won't remove code with **side effects** (co
 - [Vite - Features](https://vitejs.dev/guide/features.html)
 
 ---
-*See also: [Code Splitting](CodeSplitting.md), [Bundle Optimization](BundleOptimization.md), [Lazy Loading](LazyLoading.md)*
+*See also: [Code Splitting](./CodeSplitting.md) | [Bundle Optimization](./BundleOptimization.md) | [Lazy Loading](./LazyLoading.md)*

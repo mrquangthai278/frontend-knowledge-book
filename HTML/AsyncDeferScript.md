@@ -32,25 +32,16 @@ Load time: ~4s
 ```html
 <!-- Normal: Blocks HTML parsing -->
 <script src="script.js"></script>
-<p>This renders after script.js downloads and executes</p>
 
-<!-- Async: Downloads in parallel, executes immediately when ready -->
+<!-- Async: Loads in parallel, executes immediately -->
 <script async src="analytics.js"></script>
-<p>This can render while analytics.js is downloading</p>
 
-<!-- Defer: Downloads in parallel, executes after HTML parsing -->
+<!-- Defer: Loads in parallel, executes after parsing -->
 <script defer src="app.js"></script>
-<p>This renders before app.js executes</p>
 
 <!-- Multiple defer scripts execute in order -->
 <script defer src="library.js"></script>
 <script defer src="app.js"></script>
-<!-- library.js executes first, then app.js -->
-
-<!-- Multiple async scripts execute when ready (order not guaranteed) -->
-<script async src="tracker1.js"></script>
-<script async src="tracker2.js"></script>
-<!-- tracker1.js or tracker2.js may execute first -->
 ```
 
 ## Usage

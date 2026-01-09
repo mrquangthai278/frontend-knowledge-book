@@ -40,81 +40,68 @@ Multiple Decorators (Composition):
 
 ## Example
 
+### Logging Decorator
+
 ```javascript
-// Basic decorator - adding logging
-function logDecorator(fn) {
+function withLogging(fn) {
   return function(...args) {
-    console.log(`Calling ${fn.name} with:`, args);
+    console.log(`Calling ${fn.name}:`, args);
     const result = fn(...args);
     console.log(`Result:`, result);
     return result;
   };
 }
 
-function multiply(a, b) {
-  return a * b;
-}
+function add(a, b) { return a + b; }
+const logged = withLogging(add);
+logged(5, 3);  // Logs input and output
+```
 
-const loggedMultiply = logDecorator(multiply);
-loggedMultiply(5, 3);
-// Calling multiply with: [5, 3]
-// Result: 15
+### Memoization/Caching
 
-// Decorator for caching/memoization
-function memoizeDecorator(fn) {
+```javascript
+function memoize(fn) {
   const cache = new Map();
   return function(...args) {
     const key = JSON.stringify(args);
-    if (cache.has(key)) {
-      console.log("Returning cached result");
-      return cache.get(key);
-    }
+    if (cache.has(key)) return cache.get(key);
     const result = fn(...args);
     cache.set(key, result);
     return result;
   };
 }
 
-function expensiveCalculation(n) {
-  console.log("Computing...");
-  return n * n;
-}
+const sqrt = memoize(Math.sqrt);
+sqrt(25);  // Computed
+sqrt(25);  // Cached
+```
 
-const memoized = memoizeDecorator(expensiveCalculation);
-memoized(5);  // Computing... → 25
-memoized(5);  // Returning cached result → 25
+### Authentication Guard
 
-// Decorator for authentication/authorization
-function requireAuthDecorator(fn) {
+```javascript
+function requireAuth(fn) {
   return function(user, ...args) {
-    if (!user || !user.isAuthenticated) {
-      throw new Error("User must be authenticated");
-    }
+    if (!user?.isAuth) throw new Error("Not authenticated");
     return fn(user, ...args);
   };
 }
 
-function deleteUserData(user, userId) {
-  console.log(`Deleting data for user ${userId}`);
-  return true;
-}
+const deleteUser = requireAuth((user, id) => {
+  console.log(`Deleting ${id}`);
+});
 
-const secureDelete = requireAuthDecorator(deleteUserData);
-secureDelete({ isAuthenticated: true }, 123);  // Works!
-// secureDelete({ isAuthenticated: false }, 123);  // Error!
+deleteUser({ isAuth: true }, 123);  // ✓ Works
+```
 
-// Composing decorators
+### Composing Decorators
+
+```javascript
 function compose(...decorators) {
-  return (fn) => decorators.reduceRight((f, dec) => dec(f), fn);
+  return (fn) => decorators.reduceRight((f, d) => d(f), fn);
 }
 
-const enhancedMultiply = compose(
-  logDecorator,
-  memoizeDecorator
-)(multiply);
-
-enhancedMultiply(5, 3);  // Logs input, computes, caches result
-enhancedMultiply(5, 3);  // Logs input, returns cached result
+const enhanced = compose(withLogging, memoize)(add);
+enhanced(5, 3);  // Logs, computes, caches
 ```
 
 ## Usage

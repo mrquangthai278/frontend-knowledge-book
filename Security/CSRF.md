@@ -29,48 +29,28 @@ Transfer completes without user's consent
 
 ```javascript
 // ❌ VULNERABLE: No CSRF protection
-// Bank endpoint doesn't verify request origin
 app.post('/api/transfer-money', (req, res) => {
-  const { amount, recipient } = req.body;
-  // Only checks if user is authenticated (via cookie)
-  if (req.user) {
-    transferMoney(req.user.id, recipient, amount);
+  if (req.user) {  // Only checks authentication, not origin
+    transferMoney(req.user.id, req.body.recipient, req.body.amount);
     res.json({ success: true });
   }
 });
 
-// Attacker's HTML (attacker.com)
-<form action="https://bank.com/api/transfer-money" method="POST" style="display:none;">
-  <input name="amount" value="10000">
-  <input name="recipient" value="attacker-account">
-</form>
-<script>
-  document.querySelector('form').submit(); // Auto-submits without user knowing
-</script>
-
-// ✅ SAFE: CSRF token validation
+// ✅ SAFE: Verify CSRF token
 app.post('/api/transfer-money', (req, res) => {
-  const { amount, recipient, csrfToken } = req.body;
-
-  // Verify CSRF token matches session
-  if (!req.session.csrfToken || req.session.csrfToken !== csrfToken) {
+  // Check token matches session
+  if (req.session.csrfToken !== req.body.csrfToken) {
     return res.status(403).json({ error: 'CSRF token invalid' });
   }
-
-  if (req.user) {
-    transferMoney(req.user.id, recipient, amount);
-    res.json({ success: true });
-  }
+  transferMoney(req.user.id, req.body.recipient, req.body.amount);
+  res.json({ success: true });
 });
 
-// Frontend includes token in requests
+// Frontend: Include token in request header
 fetch('/api/transfer-money', {
   method: 'POST',
-  headers: {
-    'Content-Type': 'application/json',
-    'X-CSRF-Token': getCsrfToken() // Token from server/hidden input
-  },
-  body: JSON.stringify({ amount, recipient })
+  headers: { 'X-CSRF-Token': getCsrfToken() },
+  body: JSON.stringify({ amount: 10000, recipient: 'alice' })
 });
 ```
 

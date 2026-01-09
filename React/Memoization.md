@@ -35,38 +35,30 @@ RESULT: Parent updates → Optimized callbacks/values → Child doesn't re-rende
 ```javascript
 import { useState, useCallback, useMemo } from 'react';
 
-// Memoized child component
-const ProductCard = React.memo(({ product, onAddToCart }) => {
-  console.log(`Rendering: ${product.name}`);
-  return (
-    <div>
-      <h3>{product.name}</h3>
-      <p>${product.price}</p>
-      <button onClick={() => onAddToCart(product.id)}>Add to Cart</button>
-    </div>
-  );
-});
+// Memoized child component - skips re-render if props unchanged
+const ProductCard = React.memo(({ product, onAddToCart }) => (
+  <div>
+    <h3>{product.name}</h3>
+    <button onClick={() => onAddToCart(product.id)}>Add to Cart</button>
+  </div>
+));
 
-// Parent component using all three memoization techniques
+// Parent: combines all three memoization techniques
 const ProductList = ({ products }) => {
   const [cart, setCart] = useState([]);
   const [sortBy, setSortBy] = useState('name');
 
-  // useCallback: Memoize the handler so child doesn't re-render
-  const handleAddToCart = useCallback((productId) => {
-    setCart([...cart, productId]);
-  }, [cart]); // Function recreated only when cart changes
+  // useCallback: keep handler reference stable for React.memo
+  const addToCart = useCallback((id) => {
+    setCart([...cart, id]);
+  }, [cart]);
 
-  // useMemo: Memoize the sorted list
-  const sortedProducts = useMemo(() => {
-    console.log('Sorting products...');
-    const sorted = [...products].sort((a, b) => {
-      if (sortBy === 'name') return a.name.localeCompare(b.name);
-      if (sortBy === 'price') return a.price - b.price;
-      return 0;
-    });
-    return sorted;
-  }, [products, sortBy]); // Sorting only happens when products or sortBy change
+  // useMemo: cache sorted products to avoid re-sorting
+  const sorted = useMemo(() => {
+    return [...products].sort((a, b) =>
+      sortBy === 'name' ? a.name.localeCompare(b.name) : a.price - b.price
+    );
+  }, [products, sortBy]);
 
   return (
     <div>
@@ -74,29 +66,11 @@ const ProductList = ({ products }) => {
         <option value="name">Sort by Name</option>
         <option value="price">Sort by Price</option>
       </select>
-
-      {sortedProducts.map(product => (
-        <ProductCard
-          key={product.id}
-          product={product}
-          onAddToCart={handleAddToCart}
-        />
+      {sorted.map(product => (
+        <ProductCard key={product.id} product={product} onAddToCart={addToCart} />
       ))}
-
-      <p>Cart: {cart.length} items</p>
     </div>
   );
-};
-
-// Usage
-const App = () => {
-  const products = [
-    { id: 1, name: 'Laptop', price: 999 },
-    { id: 2, name: 'Mouse', price: 29 },
-    { id: 3, name: 'Keyboard', price: 79 }
-  ];
-
-  return <ProductList products={products} />;
 };
 ```
 

@@ -40,86 +40,32 @@ Module Script (Isolated Scope):
 ## Example
 
 ```html
-<!-- Regular script (global scope) -->
-<script>
-  var globalVar = 'I pollute global';
-  function globalFunc() {}
-</script>
+<!-- Regular script (pollutes global scope) -->
+<script src="app.js"></script>
 
 <!-- Module script (isolated scope) -->
 <script type="module">
-  // math.js equivalent content
   export const add = (a, b) => a + b;
-  export const subtract = (a, b) => a - b;
-
-  // Not accessible globally
-  const privateHelper = () => {};
+  const privateHelper = () => {};  // Not global
 </script>
 
-<!-- ============================================ -->
-<!-- Importing from module script                -->
-<!-- ============================================ -->
-
-<!-- Module script with explicit imports -->
+<!-- Import from module -->
 <script type="module">
-  import { add, subtract } from './math.js';
-  import React from 'react';
-
-  const result = add(5, 3);
-  console.log(result);  // 8
+  import { add } from './math.js';
+  console.log(add(5, 3));
 </script>
 
-<!-- ============================================ -->
-<!-- Module script vs regular script comparison -->
-<!-- ============================================ -->
-
-<!-- Regular script: blocks rendering -->
-<script src="app.js"></script>
-
-<!-- Module script: automatically deferred -->
-<script type="module" src="app.js"></script>
-<!-- Equivalent to: <script defer src="app.js"></script> -->
-
-<!-- ============================================ -->
-<!-- Dynamic imports in module scripts          -->
-<!-- ============================================ -->
-
+<!-- Dynamic import for code splitting -->
 <script type="module">
-  // Dynamic import for code splitting/lazy loading
-  async function loadFeature() {
-    const module = await import('./heavy-feature.js');
+  const btn = document.getElementById('btn');
+  btn.addEventListener('click', async () => {
+    const module = await import('./feature.js');
     module.initialize();
-  }
-
-  // Load on user interaction
-  document.getElementById('btn').addEventListener('click', loadFeature);
+  });
 </script>
 
-<!-- ============================================ -->
-<!-- Multiple module scripts with dependencies  -->
-<!-- ============================================ -->
-
-<script type="module">
-  import { logger } from './logger.js';
-  logger.info('App started');
-</script>
-
-<script type="module">
-  import { logger } from './logger.js';
-  logger.info('Another module loaded');
-</script>
-
-<!-- Both can safely import from logger.js -->
-<!-- Each module script has its own scope -->
-
-<!-- ============================================ -->
-<!-- Module script with fallback for old browsers -->
-<!-- ============================================ -->
-
-<!-- Modern browsers: execute module script -->
+<!-- Fallback for older browsers -->
 <script type="module" src="app.js"></script>
-
-<!-- Old browsers: execute nomodule script -->
 <script nomodule src="app-legacy.js"></script>
 ```
 

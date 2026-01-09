@@ -54,228 +54,24 @@ Function receives value: unknown | string | number
 
 ## Example
 
-### Basic Types
-
 ```typescript
-// Primitive types with annotations
+// Basic types
 const name: string = "Alice";
 const age: number = 30;
-const isActive: boolean = true;
-const nothing: void = undefined;
 
-// Special types
-const anything: any = "could be anything"; // avoid using any
-const unknown_value: unknown = JSON.parse('{"x": 1}'); // safer than any
-
-// Never type (unreachable code)
-function throwError(message: string): never {
-  throw new Error(message);
-}
-
-// Functions with types
-function add(a: number, b: number): number {
-  return a + b;
-}
-
-const multiply = (x: number, y: number): number => x * y;
-```
-
-### Union and Literal Types
-
-```typescript
-// Union types - value can be one of multiple types
-function processId(id: string | number) {
-  if (typeof id === 'string') {
-    return id.toUpperCase();
-  } else {
-    return id * 2;
-  }
-}
-
-// Literal types - specific string or number values
+// Union types
 type Status = 'pending' | 'success' | 'error';
 function handleStatus(status: Status): void {
-  switch (status) {
-    case 'pending':
-      console.log('Loading...');
-      break;
-    case 'success':
-      console.log('Done!');
-      break;
-    case 'error':
-      console.log('Failed!');
-      break;
+  console.log(`Status: ${status}`);
+}
+
+// Type narrowing with type guard
+function processId(id: string | number): string {
+  if (typeof id === 'string') {
+    return id.toUpperCase();
   }
+  return id.toString();
 }
-
-// Type narrowing
-function printLength(input: string | number) {
-  if (typeof input === 'string') {
-    console.log(input.length); // TypeScript knows it's string here
-  } else {
-    console.log(input.toString().length); // TypeScript knows it's number
-  }
-}
-```
-
-### Interfaces and Types
-
-```typescript
-// Interface - describes object structure
-interface User {
-  id: number;
-  name: string;
-  email: string;
-  isActive?: boolean; // optional property
-}
-
-// Using interface
-const user: User = {
-  id: 1,
-  name: "John",
-  email: "john@example.com"
-};
-
-// Type alias - similar but more flexible
-type Product = {
-  id: number;
-  title: string;
-  price: number;
-  inStock: boolean;
-};
-
-// Intersection type - combines multiple types
-type Admin = User & { role: 'admin'; permissions: string[] };
-
-// Union type of interfaces
-type Account = User | Admin;
-```
-
-### Arrays and Tuples
-
-```typescript
-// Arrays
-const numbers: number[] = [1, 2, 3];
-const strings: Array<string> = ["a", "b", "c"];
-const mixed: (string | number)[] = [1, "two", 3];
-
-// Tuples - fixed-length arrays with specific types
-const tuple: [string, number] = ["hello", 42];
-const tuple2: [string, number, boolean] = ["data", 100, true];
-
-// Tuple with optional elements
-const result: [success: boolean, data?: string] = [true];
-
-// Array of objects
-const users: User[] = [
-  { id: 1, name: "Alice", email: "alice@example.com" },
-  { id: 2, name: "Bob", email: "bob@example.com" }
-];
-```
-
-### Enums
-
-```typescript
-// Numeric enum
-enum Direction {
-  Up = 0,
-  Down = 1,
-  Left = 2,
-  Right = 3
-}
-
-// String enum
-enum Status {
-  Draft = "DRAFT",
-  Published = "PUBLISHED",
-  Archived = "ARCHIVED"
-}
-
-const currentStatus: Status = Status.Published;
-
-// Heterogeneous enum
-enum Mixed {
-  No = 0,
-  Yes = "YES",
-  Maybe = 2
-}
-```
-
-### Generics
-
-```typescript
-// Generic function
-function identity<T>(value: T): T {
-  return value;
-}
-
-const result1 = identity<string>("hello"); // string
-const result2 = identity<number>(42); // number
-
-// Generic interface
-interface Container<T> {
-  value: T;
-  getValue(): T;
-  setValue(value: T): void;
-}
-
-// Generic class
-class Box<T> {
-  constructor(private value: T) {}
-
-  getValue(): T {
-    return this.value;
-  }
-
-  setValue(value: T): void {
-    this.value = value;
-  }
-}
-
-const stringBox = new Box<string>("hello");
-const numberBox = new Box<number>(42);
-```
-
-### Type Guards and Assertions
-
-```typescript
-// typeof guard
-function processValue(value: string | number) {
-  if (typeof value === 'string') {
-    return value.toUpperCase();
-  }
-  return value * 2;
-}
-
-// instanceof guard
-class Dog {
-  bark() {
-    console.log("Woof!");
-  }
-}
-
-function makeSound(animal: Dog | string) {
-  if (animal instanceof Dog) {
-    animal.bark();
-  } else {
-    console.log(animal);
-  }
-}
-
-// Custom type guard
-function isUser(obj: unknown): obj is User {
-  return (
-    typeof obj === 'object' &&
-    obj !== null &&
-    'id' in obj &&
-    'name' in obj &&
-    'email' in obj
-  );
-}
-
-// Type assertion (use with caution)
-const value = "hello" as string;
-const length = (value as unknown as string).length;
 ```
 
 ## Usage

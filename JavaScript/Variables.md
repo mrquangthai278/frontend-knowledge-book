@@ -61,87 +61,50 @@ arr.push(4);     // ✓ OK: array methods work fine
 
 ## Example
 
-### Declaring Variables with const, let, and var
+### const, let, and var
 
 ```javascript
-// const - use by default
+// const - prevents reassignment (use by default)
 const maxAttempts = 3;
-const userName = "Alice";
-const userSettings = { theme: "dark", language: "en" };
-
-// Const prevents reassignment
 maxAttempts = 5; // ✗ TypeError: Assignment to constant variable
 
-// But allows mutation (changing object properties)
-userSettings.theme = "light"; // ✓ OK
-userSettings.notifications = true; // ✓ OK
-
-// let - use when you need to reassign
+// let - allows reassignment
 let score = 0;
 score = 10; // ✓ OK
-score++; // ✓ OK
 
-let count;
-count = 1; // Initialize later
-
-// var - avoid in modern code
+// var - function-scoped (avoid in modern code)
 var oldStyle = "not recommended";
 var oldStyle = "redeclared"; // ✓ Allowed, but confusing
-
-// var is function-scoped, not block-scoped
-function example() {
-  var x = 1;
-  if (true) {
-    var x = 2; // overwrites outer x
-  }
-  console.log(x); // 2
-}
-
-// let is block-scoped
-function example2() {
-  let y = 1;
-  if (true) {
-    let y = 2; // separate from outer y
-  }
-  console.log(y); // 1
-}
 ```
 
 ### Block Scope vs Function Scope
 
 ```javascript
-// Block scope with let/const
-function blockScopeExample() {
-  if (true) {
-    const blockVar = "I exist only in this block";
-    let blockLet = "Me too";
-    console.log(blockVar); // "I exist only in this block"
-  }
-
-  console.log(blockVar); // ✗ ReferenceError: blockVar is not defined
-  console.log(blockLet); // ✗ ReferenceError: blockLet is not defined
+// let/const - block-scoped (inside if/loop)
+if (true) {
+  const blockVar = "only in this block";
+  console.log(blockVar); // ✓ Works
 }
+console.log(blockVar); // ✗ ReferenceError
 
-// Function scope with var
-function functionScopeExample() {
-  if (true) {
-    var funcVar = "I exist in the entire function";
-  }
-
-  console.log(funcVar); // "I exist in the entire function"
+// var - function-scoped (entire function)
+if (true) {
+  var funcVar = "entire function scope";
 }
+console.log(funcVar); // ✓ Works
+```
 
-// Loop variable scoping
+### Loop Variables
+
+```javascript
+// let - each iteration has its own i
 for (let i = 0; i < 3; i++) {
-  setTimeout(() => {
-    console.log(i); // 0, 1, 2 - each iteration has its own i
-  }, 100);
+  setTimeout(() => console.log(i), 100);  // 0, 1, 2
 }
 
+// var - all iterations share same i
 for (var j = 0; j < 3; j++) {
-  setTimeout(() => {
-    console.log(j); // 3, 3, 3 - all reference the same j
-  }, 100);
+  setTimeout(() => console.log(j), 100);  // 3, 3, 3
 }
 ```
 
@@ -174,106 +137,33 @@ name = "John"; // ✓ OK
 ### Const with Objects and Arrays
 
 ```javascript
-// Const prevents reassignment, not mutation
-const user = {
-  firstName: "John",
-  lastName: "Doe",
-  email: "john@example.com"
-};
+// const prevents reassignment, allows mutation
+const user = { name: "John", age: 30 };
 
-// Reassignment fails
-user = { firstName: "Jane" }; // ✗ Error
+user = {};  // ✗ Error: reassignment fails
+user.name = "Jane";  // ✓ OK: mutation allowed
+user.email = "jane@example.com";  // ✓ OK: add property
 
-// But mutation succeeds
-user.firstName = "Jane"; // ✓ OK
-user.phone = "555-1234"; // ✓ Add new property
-
-// Same with arrays
-const colors = ["red", "green", "blue"];
-
-colors = ["yellow"]; // ✗ Error: reassignment
-
-colors[0] = "orange"; // ✓ OK: mutation
-colors.push("purple"); // ✓ OK: mutation
-colors.pop(); // ✓ OK: mutation
+const colors = ["red", "green"];
+colors = ["blue"];  // ✗ Error: reassignment fails
+colors[0] = "orange";  // ✓ OK: mutation allowed
+colors.push("yellow");  // ✓ OK: array methods work
 
 // For truly immutable objects, use Object.freeze()
-const frozenUser = Object.freeze({
-  name: "Alice",
-  id: 1
-});
-
-frozenUser.name = "Bob"; // fails silently in non-strict mode
-console.log(frozenUser.name); // still "Alice"
+const frozen = Object.freeze({ name: "Alice" });
+frozen.name = "Bob";  // ✗ Fails silently (or throws in strict mode)
 ```
 
-### Variable Naming Conventions
+### Variable Naming
 
 ```javascript
-// Constants (never change)
-const MAX_RETRIES = 3;
-const API_ENDPOINT = "https://api.example.com";
+const MAX_RETRIES = 3;           // Constants: UPPER_SNAKE_CASE
+const userName = "John";         // Regular: camelCase
+const isActive = true;           // Boolean: is/has/can/should prefix
 
-// Regular variables (camelCase)
-const userName = "John";
-let userScore = 100;
-const userPreferences = { theme: "dark" };
-
-// Boolean variables (prefixed with is, has, can, should)
-const isActive = true;
-const hasPermission = false;
-const canDelete = true;
-const shouldUpdate = false;
-
-// Avoid unclear names
-let x = 5; // ✗ Unclear
-const totalPrice = 5; // ✓ Clear
-
-// Avoid single letters except for loops
-for (let i = 0; i < 10; i++) { // ✓ OK in loops
-  console.log(i);
-}
-
-// Avoid abbreviations
-const usr = "John"; // ✗ Unclear
-const user = "John"; // ✓ Clear
-```
-
-### Variable Reassignment Best Practices
-
-```javascript
-// Example: Counter pattern
-const counter = {
-  value: 0,
-  increment() {
-    this.value++;
-  },
-  decrement() {
-    this.value--;
-  },
-  getValue() {
-    return this.value;
-  }
-};
-
-counter.increment(); // ✓ Mutate the object
-console.log(counter.getValue()); // 1
-
-// Example: Using let for changing state
-let currentUser = null;
-
-function login(user) {
-  currentUser = user; // ✓ Reassign is appropriate here
-}
-
-function logout() {
-  currentUser = null; // ✓ Reassign is appropriate here
-}
-
-// Example: Array manipulation
-const numbers = [1, 2, 3];
-const doubled = numbers.map(n => n * 2); // ✓ Create new array
-// instead of trying to reassign: let numbers = ...
+for (let i = 0; i < 10; i++) {}  // ✓ OK: use i in loops only
+const x = 5;                     // ✗ Avoid: unclear names
+const totalPrice = 5;            // ✓ Clear and descriptive
 ```
 
 ## Usage
@@ -289,58 +179,21 @@ const doubled = numbers.map(n => n * 2); // ✓ Create new array
 ### Real-world Example
 
 ```javascript
-// User management system
+// User login state management
 class UserManager {
   constructor() {
-    // Instance variables
-    const users = []; // Private to constructor
-    let loggedInUser = null;
-    const MAX_USERS = 100;
+    const users = [];       // const: doesn't reassign
+    let currentUser = null; // let: reassign on login/logout
+    const MAX_USERS = 100;  // const: never changes
 
-    // Public methods
-    this.addUser = function(user) {
-      if (users.length >= MAX_USERS) {
-        throw new Error(`Cannot exceed ${MAX_USERS} users`);
-      }
-      users.push(user);
-    };
-
-    this.login = function(username) {
+    this.login = (username) => {
       const user = users.find(u => u.name === username);
-      if (user) {
-        loggedInUser = user; // Reassign when needed
-        return true;
-      }
-      return false;
+      if (user) currentUser = user;  // Reassign when needed
+      return !!user;
     };
 
-    this.getCurrentUser = function() {
-      return loggedInUser;
-    };
-
-    this.logout = function() {
-      loggedInUser = null;
-    };
-  }
-}
-
-// API request handler
-async function fetchUserData(userId) {
-  const baseUrl = "https://api.example.com"; // Constant
-  let retries = 0; // Will be reassigned
-  const maxRetries = 3;
-
-  while (retries < maxRetries) {
-    try {
-      const response = await fetch(`${baseUrl}/users/${userId}`);
-      const userData = await response.json();
-      return userData;
-    } catch (error) {
-      retries++; // Reassignment needed
-      if (retries >= maxRetries) {
-        throw new Error("Failed to fetch user data after retries");
-      }
-    }
+    this.logout = () => { currentUser = null; };
+    this.getUser = () => currentUser;
   }
 }
 ```

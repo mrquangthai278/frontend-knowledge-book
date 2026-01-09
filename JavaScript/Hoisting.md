@@ -47,65 +47,40 @@ Temporal Dead Zone (TDZ):
 ### var - Hoisted and Initialized
 
 ```javascript
-// This code...
-console.log(name); // undefined (not an error!)
+console.log(name);  // undefined (hoisted + initialized)
 var name = "John";
-console.log(name); // "John"
-
-// Is interpreted as:
-var name;          // Hoisted declaration
-console.log(name); // undefined
-name = "John";     // Assignment
-console.log(name); // "John"
+// Interpreted as: var name; [hoisted] then console.log, then assignment
 ```
 
 ### let/const - Hoisted but Not Initialized (TDZ)
 
 ```javascript
-// This throws ReferenceError
-console.log(age);   // ReferenceError: Cannot access 'age' before initialization
-let age = 25;
-console.log(age);   // 25
-
-// The variable is hoisted but in the Temporal Dead Zone
-// Trying to access it throws an error
+console.log(age);   // ReferenceError: Cannot access before initialization
+let age = 25;       // TDZ ends here at declaration
 ```
 
-### Function Declaration - Fully Hoisted
+### Function Declaration vs Expression
 
 ```javascript
-// Function declarations are fully hoisted
-sayHello();         // "Hello!" - works fine!
+sayHello();         // Works fine! (fully hoisted)
+function sayHello() { console.log("Hello!"); }
 
-function sayHello() {
-  console.log("Hello!");
-}
-
-// Function expressions are NOT fully hoisted
-greet();            // TypeError: greet is not a function
-var greet = function() {
-  console.log("Hi!");
-};
-
-// const function expressions
-getName();          // ReferenceError (TDZ)
-const getName = () => "Alice";
+greet();            // TypeError: not a function (only var is hoisted)
+var greet = function() { console.log("Hi!"); };
 ```
 
 ### Loop Variable Hoisting
 
 ```javascript
-// Bad: Using var (all iterations reference the same i)
+// Bad: var (all iterations share same i)
 for (var i = 0; i < 3; i++) {
-  setTimeout(() => console.log(i), 0);
+  setTimeout(() => console.log(i), 0);  // 3, 3, 3
 }
-// Output: 3, 3, 3
 
-// Good: Using let (each iteration has its own i)
+// Good: let (each iteration has its own i)
 for (let i = 0; i < 3; i++) {
-  setTimeout(() => console.log(i), 0);
+  setTimeout(() => console.log(i), 0);  // 0, 1, 2
 }
-// Output: 0, 1, 2
 ```
 
 ## Usage
@@ -121,25 +96,15 @@ for (let i = 0; i < 3; i++) {
 ### Real-world Example
 
 ```javascript
-// Web server middleware scenario
-const express = require('express');
-const app = express();
-
-// Without hoisting knowledge, this might confuse beginners
-var globalConfig = {};
-
-function initializeApp() {
-  console.log(globalConfig); // undefined (hoisted)
-  globalConfig = { port: 3000 };
+// Without understanding hoisting, this confuses beginners
+var config = {};
+function init() {
+  console.log(config);  // undefined (hoisted but not initialized)
+  config = { port: 3000 };
 }
 
-// Better approach using let/const
-let appConfig = {};
+// Better: use let/const to avoid hoisting confusion
 const PORT = process.env.PORT || 3000;
-
-function initApp() {
-  appConfig = { port: PORT };
-}
 ```
 
 ### Best Practices

@@ -47,67 +47,29 @@ Interface Merging:
 interface User {
   id: number;
   name: string;
-  email: string;
+  email?: string;
 }
 
-// Optional properties
-interface Config {
-  timeout?: number;
-  retries?: number;
-  verbose: boolean;
-}
-
-// Methods in interface
-interface Logger {
-  log(message: string): void;
-  error(message: string, code?: number): void;
-}
-
-// Interface extending another interface
+// Interface extending another
 interface Admin extends User {
   role: 'admin';
   permissions: string[];
 }
 
-// Multiple inheritance
-interface Auditable {
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-interface Document extends User, Auditable {
-  content: string;
-}
-
-// Reopening/merging interfaces (declaration merging)
-interface User {
-  phone?: string; // Adding new property
-}
-
-// Using interfaces
-const user: User = {
-  id: 1,
-  name: 'Alice',
-  email: 'alice@example.com'
-};
-
-const admin: Admin = {
-  id: 2,
-  name: 'Bob',
-  email: 'bob@example.com',
-  role: 'admin',
-  permissions: ['read', 'write', 'delete']
-};
-
+// Implementing interface in class
 class ConsoleLogger implements Logger {
   log(message: string): void {
     console.log(message);
   }
-
-  error(message: string, code?: number): void {
-    console.error(`[${code}] ${message}`);
-  }
 }
+
+// Using the interface
+const admin: Admin = {
+  id: 1,
+  name: 'Bob',
+  role: 'admin',
+  permissions: ['read', 'write']
+};
 ```
 
 ## Usage

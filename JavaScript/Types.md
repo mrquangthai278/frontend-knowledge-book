@@ -52,120 +52,65 @@ Primitives (Stored by Value):     Objects (Stored by Reference):
 ### Primitive Types
 
 ```javascript
-// Strings - text data
-const name = "Alice";
-const message = 'Hello, World!';
-const template = `Welcome, ${name}`;
-
-// Numbers - integer and floating point
-const age = 25;
-const price = 19.99;
-const infinity = Infinity;
-const notANumber = NaN; // typeof "number"
-
-// Boolean - true or false
-const isActive = true;
-const isValid = false;
-
-// BigInt - large integers beyond Number limit
-const largeNumber = 9007199254740992n; // n suffix indicates BigInt
-const bigValue = BigInt("123456789012345678901234567890");
-
-// Symbol - unique identifier
-const id = Symbol('id');
-const id2 = Symbol('id');
-console.log(id === id2); // false - each symbol is unique
-
-// undefined - variable declared but not assigned
-let x;
-console.log(x); // undefined
-
-// null - intentional absence of value
-const empty = null;
+const name = "Alice";          // String
+const age = 25;                // Number
+const price = 19.99;           // Number (decimal)
+const isActive = true;         // Boolean
+const largeNum = 9007199254740992n;  // BigInt
+const id = Symbol('id');       // Symbol (unique)
+const x = undefined;           // Undefined
+const empty = null;            // Null (intentional)
 ```
 
-### Object Type (Reference Types)
+### Reference Types
 
 ```javascript
-// Objects - collections of key-value pairs
-const user = {
-  name: "John",
-  age: 30,
-  isActive: true
-};
+const user = { name: "John", age: 30 };  // Object
+const colors = ["red", "green", "blue"];  // Array
+function greet(name) { return `Hi, ${name}`; }  // Function
 
-// Arrays - ordered list of values
-const colors = ["red", "green", "blue"];
-const mixed = [1, "hello", true, null, { key: "value" }];
-
-// Functions - reusable blocks of code
-function greet(name) {
-  return `Hello, ${name}`;
-}
-const arrow = (x) => x * 2;
-
-// Built-in Objects
-const date = new Date();
-const regex = /[a-z]+/g;
-const map = new Map();
-const set = new Set([1, 2, 3]);
+const date = new Date();       // Built-in Object
+const map = new Map();         // Built-in Object
 ```
 
 ### Type Checking
 
 ```javascript
-// typeof operator
-typeof "hello";           // "string"
-typeof 42;                // "number"
-typeof true;              // "boolean"
-typeof undefined;         // "undefined"
-typeof null;              // "object" (famous quirk!)
-typeof Symbol('id');      // "symbol"
-typeof 42n;               // "bigint"
-typeof {};                // "object"
-typeof [];                // "object" (arrays are objects)
-typeof function(){};      // "function"
+typeof "hello";        // "string"
+typeof 42;             // "number"
+typeof true;           // "boolean"
+typeof undefined;      // "undefined"
+typeof Symbol('id');   // "symbol"
+typeof 42n;            // "bigint"
+typeof {};             // "object"
+typeof null;           // "object" (quirk!)
+typeof [];             // "object" (arrays are objects)
 
-// instanceof for objects
-[] instanceof Array;      // true
-/test/ instanceof RegExp; // true
-
-// Object.prototype.toString for precise type
-Object.prototype.toString.call([]);     // "[object Array]"
-Object.prototype.toString.call({});     // "[object Object]"
-Object.prototype.toString.call(null);   // "[object Null]"
+[] instanceof Array;   // true
+/test/ instanceof RegExp;  // true
 ```
 
 ### Type Coercion
 
 ```javascript
-// Implicit coercion (automatic)
-"5" + 3;              // "53" (concatenation)
-5 + "3";              // "53" (number coerced to string)
-"10" - 3;             // 7 (string coerced to number)
-true + 1;             // 2 (boolean coerced to number)
-null + 5;             // 5 (null coerced to 0)
-undefined + 5;        // NaN (undefined coerced to NaN)
+// Implicit coercion
+"5" + 3;       // "53" (string concat)
+"10" - 3;      // 7 (string to number)
+true + 1;      // 2 (boolean to number)
+null + 5;      // 5 (null is 0)
 
-// Explicit coercion (intentional)
-String(42);           // "42"
-Number("42");         // 42
-Boolean(0);           // false
-Boolean("hello");     // true
+// Explicit coercion
+String(42);    // "42"
+Number("42");  // 42
+Boolean(0);    // false
 
-// Truthy and Falsy values
-if ("") {} // false (empty string)
-if (0) {}  // false
-if (-0) {} // false
-if (NaN) {} // false
+// Truthy/Falsy
+if ("") {}  // false
+if (0) {}   // false
 if (null) {} // false
-if (undefined) {} // false
-if (false) {} // false
-if (true) {} // true
 if ("hello") {} // true
-if (1) {} // true
-if ([]) {} // true (even empty array!)
-if ({}) {} // true (even empty object!)
+if (1) {}   // true
+if ([]) {}  // true (non-empty!)
 ```
 
 ## Usage

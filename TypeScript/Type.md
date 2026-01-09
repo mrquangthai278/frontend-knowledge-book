@@ -46,40 +46,16 @@ type User = {
   email: string;
 };
 
-// Union type - value can be one of several types
+// Union type
 type Status = 'pending' | 'completed' | 'failed';
-
-// Intersection type - combines multiple types
-type Admin = User & {
-  role: 'admin';
-  permissions: string[];
-};
 
 // Function type
 type Callback = (data: string) => void;
 
-// Conditional type
-type IsString<T> = T extends string ? true : false;
-type Result = IsString<'hello'>; // true
-
-// Mapped type - transforms properties of an existing type
-type Readonly<T> = {
-  readonly [K in keyof T]: T[K];
-};
-
-// Using types in practice
-const user: User = {
-  id: 1,
-  name: 'John',
-  email: 'john@example.com'
-};
-
-const updateStatus = (status: Status) => {
-  console.log(`Status is ${status}`);
-};
-
-updateStatus('completed'); // Valid
-// updateStatus('unknown'); // Error: not a valid Status
+// Using types
+const user: User = { id: 1, name: 'John', email: 'john@example.com' };
+const updateStatus = (status: Status) => console.log(`Status: ${status}`);
+updateStatus('completed');
 ```
 
 ## Usage

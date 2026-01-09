@@ -40,8 +40,9 @@ next() → { value: undefined, done: true }
 
 ## Example
 
+### Basic Generator
+
 ```javascript
-// Basic generator - simple sequence
 function* simpleGenerator() {
   yield 1;
   yield 2;
@@ -51,10 +52,11 @@ function* simpleGenerator() {
 const gen = simpleGenerator();
 console.log(gen.next());  // { value: 1, done: false }
 console.log(gen.next());  // { value: 2, done: false }
-console.log(gen.next());  // { value: 3, done: false }
-console.log(gen.next());  // { value: undefined, done: true }
+```
 
-// Generator with for...of loop
+### Using for...of
+
+```javascript
 function* countToN(n) {
   for (let i = 1; i <= n; i++) {
     yield i;
@@ -64,53 +66,41 @@ function* countToN(n) {
 for (const num of countToN(3)) {
   console.log(num);  // 1, 2, 3
 }
+```
 
-// Generator with two-way communication
+### Two-Way Communication
+
+```javascript
 function* dialogue() {
   const name = yield "What is your name?";
   const age = yield `Hello ${name}, what is your age?`;
-  yield `So ${name} is ${age} years old!`;
+  yield `${name} is ${age} years old!`;
 }
 
-const conversation = dialogue();
-console.log(conversation.next().value);           // "What is your name?"
-console.log(conversation.next("Alice").value);    // "Hello Alice, what is your age?"
-console.log(conversation.next(25).value);         // "So Alice is 25 years old!"
+const conv = dialogue();
+conv.next().value;           // "What is your name?"
+conv.next("Alice").value;    // "Hello Alice, what is your age?"
+conv.next(25).value;         // "Alice is 25 years old!"
+```
 
-// Generator for lazy evaluation (memory efficient)
+### Lazy Evaluation
+
+```javascript
 function* infiniteSequence() {
   let id = 0;
-  while (true) {
-    yield id++;
-  }
+  while (true) yield id++;  // Generates values on demand
 }
 
 const ids = infiniteSequence();
-console.log(ids.next().value);  // 0
-console.log(ids.next().value);  // 1
-console.log(ids.next().value);  // 2
-// Can generate infinite values without storing them
+console.log(ids.next().value);  // 0 (memory efficient)
+```
 
-// Generator delegation with yield*
-function* delegatingGenerator() {
-  yield* [1, 2, 3];
-  yield* countToN(2);  // Delegates to another generator
-}
+### Generator Delegation
 
-for (const num of delegatingGenerator()) {
-  console.log(num);  // 1, 2, 3, 1, 2
-}
-
-// Practical: Reading file line by line (lazy)
-function* readLines(text) {
-  for (const line of text.split('\n')) {
-    yield line;
-  }
-}
-
-const fileContent = `Line 1\nLine 2\nLine 3`;
-for (const line of readLines(fileContent)) {
-  console.log(`Processing: ${line}`);
+```javascript
+function* delegating() {
+  yield* [1, 2, 3];       // Delegate to array
+  yield* countToN(2);     // Delegate to another generator
 }
 ```
 

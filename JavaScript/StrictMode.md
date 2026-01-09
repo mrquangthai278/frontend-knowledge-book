@@ -38,245 +38,62 @@ STRICT MODE:
 
 ## Example
 
+### Implicit Globals
+
 ```javascript
-// ============================================
-// 1. Global Strict Mode
-// ============================================
+// Normal mode - allows implicit globals
+implicitGlobal = 'allowed';  // Creates global variable
 
+// Strict mode - requires declaration
 'use strict';
+implicitGlobal = 'not allowed';  // ✗ ReferenceError
+```
 
-function strictFunction() {
-  console.log('This entire file is in strict mode');
-}
+### this in Functions
 
-// ============================================
-// 2. Function-Level Strict Mode
-// ============================================
+```javascript
+// Normal mode
+function normal() { console.log(this); }
+normal();  // window/global
 
-// Global scope: normal mode
-var globalVar = 'global';
-
-function normalFunction() {
-  // This function is in normal mode
-  implicitGlobal = 'allowed';
-  console.log(implicitGlobal);  // 'allowed'
-}
-
-function strictFunction() {
-  'use strict';
-  // This function is in strict mode
-  implicitVar = 'not allowed';  // ReferenceError: implicitVar is not defined
-}
-
-normalFunction();
-// strictFunction();  // Would throw error
-
-// ============================================
-// 3. Variables Must Be Declared
-// ============================================
-
+// Strict mode
 'use strict';
+function strict() { console.log(this); }
+strict();  // undefined
+```
 
-// Normal mode allows implicit globals:
-// x = 1;  // Creates window.x in browsers
+### Delete Variables
 
-// Strict mode requires declaration:
-var y = 1;      // ✓ Correct
-let z = 2;      // ✓ Correct
-const a = 3;    // ✓ Correct
-// b = 4;         // ✗ ReferenceError
-
-// ============================================
-// 4. this in Functions
-// ============================================
-
-function normalThis() {
-  console.log(this);  // window (or global)
-}
-
-function strictThis() {
-  'use strict';
-  console.log(this);  // undefined
-}
-
-function strictMethod() {
-  'use strict';
-
-  const obj = {
-    name: 'Object',
-    method() {
-      console.log(this);  // obj (method context still works)
-    }
-  };
-
-  obj.method();
-}
-
-normalThis();
-strictThis();
-strictMethod();
-
-// ============================================
-// 5. Cannot Delete Variables
-// ============================================
-
-'use strict';
-
+```javascript
+// Normal mode
 var x = 1;
-let y = 2;
+delete x;  // ✓ Works
 
-// delete x;  // ✗ SyntaxError: variable x cannot be deleted
-// delete y;  // ✗ SyntaxError: variable y cannot be deleted
+// Strict mode
+'use strict';
+var y = 1;
+delete y;  // ✗ SyntaxError
+```
 
-// Can only delete properties:
-const obj = { prop: 1 };
-delete obj.prop;  // ✓ Correct
+### Function Parameters
 
-// ============================================
-// 6. Function Parameter Restrictions
-// ============================================
-
+```javascript
 'use strict';
 
-// Duplicate parameter names not allowed:
-// function test(a, a, b) {  // ✗ SyntaxError
-//   console.log(a);
-// }
+// Duplicate parameter names forbidden
+// function test(a, a, b) { }  // ✗ SyntaxError
+```
 
-// ============================================
-// 7. Octal Literals Forbidden
-// ============================================
+### call() Behavior
 
+```javascript
 'use strict';
 
-// var x = 010;  // ✗ SyntaxError
-var x = 0o10;   // ✓ Correct (ES6 octal syntax)
+function test() { console.log(this); }
 
-// ============================================
-// 8. eval() Is Safer
-// ============================================
-
-'use strict';
-
-// eval() doesn't create variables in surrounding scope
-eval("var x = 1;");
-console.log(typeof x);  // 'undefined' (in strict mode)
-                        // 'number' (in normal mode)
-
-// ============================================
-// 9. arguments Object Restrictions
-// ============================================
-
-'use strict';
-
-function test(a, b) {
-  // arguments is not bound to parameters
-  arguments[0] = 999;
-  console.log(a);  // Still 1, not affected by arguments
-}
-
-test(1, 2);
-
-// ============================================
-// 10. with Statement Forbidden
-// ============================================
-
-'use strict';
-
-// with statement is not allowed:
-// const obj = { x: 1 };
-// with (obj) {  // ✗ SyntaxError
-//   console.log(x);
-// }
-
-// ============================================
-// 11. call(), apply(), bind() Behavior
-// ============================================
-
-'use strict';
-
-function normalCall() {
-  console.log(this);  // window/global
-}
-
-function strictCall() {
-  console.log(this);  // whatever context is passed
-}
-
-normalCall.call(null);     // window/global
-strictCall.call(null);     // null
-strictCall.call(undefined); // undefined
-strictCall.call(5);        // 5 (not boxed to Number)
-
-// ============================================
-// 12. ES6 Features in Strict Mode
-// ============================================
-
-'use strict';
-
-// Classes are always in strict mode
-class MyClass {
-  constructor(name) {
-    this.name = name;
-  }
-
-  method() {
-    // this is strictly bound
-    console.log(this.name);
-  }
-}
-
-// Arrow functions inherit strict mode from context
-const obj = {
-  name: 'Object',
-  method: () => {
-    console.log(this);  // undefined (strict mode inherited)
-  }
-};
-
-// ============================================
-// 13. Comparison: Normal vs Strict
-// ============================================
-
-// NORMAL MODE
-function normalExample() {
-  x = 1;                    // ✓ Creates global variable
-  function inner() {
-    console.log(this);      // window
-  }
-  delete x;                 // ✓ Works
-  with (Math) {             // ✓ Allowed
-    console.log(sqrt(16));
-  }
-}
-
-// STRICT MODE
-function strictExample() {
-  'use strict';
-  // x = 1;                 // ✗ ReferenceError
-  // function inner() {
-  //   console.log(this);   // undefined
-  // }
-  // delete x;              // ✗ SyntaxError
-  // with (Math) { }        // ✗ SyntaxError
-}
-
-// ============================================
-// 14. Transitioning to Strict Mode
-// ============================================
-
-// Best practice: use in modules or classes
-// No need to manually add 'use strict'
-
-// Module (automatically strict):
-// export const myFunction = () => { ... };
-
-// Class (automatically strict):
-// class MyClass {
-//   method() { ... }
-// }
-
-// Modern build tools and bundlers default to strict mode
+test.call(null);       // null (not window)
+test.call(undefined);  // undefined
+test.call(5);          // 5 (not boxed to Number)
 ```
 
 ## Usage

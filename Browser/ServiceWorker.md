@@ -75,106 +75,46 @@ Service Worker intercepts (fetch event)
 
 ## Example
 
-### Basic Service Worker Registration
+### Service Worker Setup
 
 ```javascript
-// In your main application (e.g., index.js)
+// Register Service Worker (main app)
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('/sw.js')
-    .then(registration => {
-      console.log('Service Worker registered:', registration);
-    })
-    .catch(error => {
-      console.error('Service Worker registration failed:', error);
-    });
+    .then(reg => console.log('SW registered'))
+    .catch(err => console.error('SW failed:', err));
 }
-```
 
-### Basic Service Worker File (sw.js)
-
-```javascript
-// Service Worker file
+// Service Worker file (sw.js)
 const CACHE_NAME = 'my-app-v1';
-const urlsToCache = [
-  '/',
-  '/index.html',
-  '/styles/main.css',
-  '/scripts/main.js',
-  '/images/logo.png'
-];
+const urlsToCache = ['/', '/index.html', '/styles.css', '/app.js'];
 
-// Install event - cache assets
+// Install: Cache assets
 self.addEventListener('install', event => {
-  console.log('Service Worker installing...');
-
   event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then(cache => {
-        console.log('Caching app shell');
-        return cache.addAll(urlsToCache);
-      })
+    caches.open(CACHE_NAME).then(cache => cache.addAll(urlsToCache))
   );
-
-  // Force the waiting Service Worker to become the active one
   self.skipWaiting();
 });
 
-// Activate event - cleanup old caches
+// Activate: Clean up old caches
 self.addEventListener('activate', event => {
-  console.log('Service Worker activating...');
-
   event.waitUntil(
-    caches.keys().then(cacheNames => {
-      return Promise.all(
-        cacheNames.map(cacheName => {
-          if (cacheName !== CACHE_NAME) {
-            console.log('Deleting old cache:', cacheName);
-            return caches.delete(cacheName);
-          }
-        })
-      );
-    })
+    caches.keys().then(names =>
+      Promise.all(names.filter(name => name !== CACHE_NAME).map(name => caches.delete(name)))
+    )
   );
-
-  // Take control of all pages immediately
   self.clients.claim();
 });
 
-// Fetch event - intercept network requests
+// Fetch: Intercept requests (cache first)
 self.addEventListener('fetch', event => {
-  // Skip non-GET requests
-  if (event.request.method !== 'GET') {
-    return;
-  }
+  if (event.request.method !== 'GET') return;
 
   event.respondWith(
     caches.match(event.request)
-      .then(response => {
-        // Return cached response if available
-        if (response) {
-          return response;
-        }
-
-        return fetch(event.request).then(response => {
-          // Don't cache non-successful responses
-          if (!response || response.status !== 200 || response.type === 'error') {
-            return response;
-          }
-
-          // Clone the response for caching
-          const responseToCache = response.clone();
-          caches.open(CACHE_NAME).then(cache => {
-            cache.put(event.request, responseToCache);
-          });
-
-          return response;
-        });
-      })
-      .catch(error => {
-        console.error('Fetch failed:', error);
-        // Return offline page or cached fallback
-        return caches.match('/offline.html');
-      })
+      .then(response => response || fetch(event.request))
+      .catch(() => caches.match('/offline.html'))
   );
 });
 ```
@@ -182,96 +122,55 @@ self.addEventListener('fetch', event => {
 ### Caching Strategies
 
 ```javascript
-// 1. CACHE FIRST (Cache, falling back to network)
+// Cache First: Use cached, fallback to network
 self.addEventListener('fetch', event => {
   event.respondWith(
-    caches.match(event.request)
-      .then(response => response || fetch(event.request))
-      .catch(() => caches.match('/offline.html'))
+    caches.match(event.request).then(response => response || fetch(event.request))
   );
 });
 
-// 2. NETWORK FIRST (Network, falling back to cache)
+// Network First: Try network, fallback to cache
 self.addEventListener('fetch', event => {
   event.respondWith(
     fetch(event.request)
-      .then(response => {
-        const responseClone = response.clone();
-        caches.open('dynamic-cache').then(cache => {
-          cache.put(event.request, responseClone);
-        });
-        return response;
-      })
+      .then(res => (caches.open('api-cache').then(cache => cache.put(event.request, res.clone())), res))
       .catch(() => caches.match(event.request))
   );
 });
 
-// 3. STALE WHILE REVALIDATE
+// Stale While Revalidate: Return cached, update in background
 self.addEventListener('fetch', event => {
   event.respondWith(
-    caches.match(event.request)
-      .then(cachedResponse => {
-        const fetchPromise = fetch(event.request)
-          .then(response => {
-            caches.open('dynamic-cache').then(cache => {
-              cache.put(event.request, response.clone());
-            });
-            return response;
-          });
-
-        return cachedResponse || fetchPromise;
-      })
+    caches.match(event.request).then(cached => {
+      const fetched = fetch(event.request).then(res =>
+        caches.open('api-cache').then(cache => (cache.put(event.request, res.clone()), res))
+      );
+      return cached || fetched;
+    })
   );
-});
-
-// 4. NETWORK ONLY
-self.addEventListener('fetch', event => {
-  event.respondWith(fetch(event.request));
 });
 ```
 
 ### Communication with Main Thread
 
 ```javascript
-// In main application (index.js)
-const updateButton = document.getElementById('update-btn');
-
-updateButton.addEventListener('click', () => {
-  if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
-    navigator.serviceWorker.controller.postMessage({
-      type: 'UPDATE_CACHE',
-      payload: { url: '/api/data' }
-    });
-  }
+// Main app: Send message to Service Worker
+navigator.serviceWorker.controller.postMessage({
+  type: 'UPDATE_CACHE',
+  payload: { url: '/api/data' }
 });
 
+// Main app: Listen for messages from Service Worker
 navigator.serviceWorker.addEventListener('message', event => {
-  if (event.data.type === 'CACHE_UPDATED') {
-    console.log('Cache updated:', event.data.payload);
-  }
+  console.log('Cache updated:', event.data.payload);
 });
 
-// In Service Worker (sw.js)
+// Service Worker: Listen for messages from app
 self.addEventListener('message', event => {
   if (event.data.type === 'UPDATE_CACHE') {
-    const url = event.data.payload.url;
-
-    fetch(url)
-      .then(response => {
-        caches.open('api-cache').then(cache => {
-          cache.put(url, response.clone());
-        });
-
-        // Send message back to clients
-        self.clients.matchAll().then(clients => {
-          clients.forEach(client => {
-            client.postMessage({
-              type: 'CACHE_UPDATED',
-              payload: { url }
-            });
-          });
-        });
-      });
+    fetch(event.data.payload.url).then(res =>
+      caches.open('api-cache').then(cache => cache.put(event.data.payload.url, res))
+    );
   }
 });
 ```
@@ -279,52 +178,34 @@ self.addEventListener('message', event => {
 ### Push Notifications
 
 ```javascript
-// Request user permission (in main app)
-Notification.requestPermission().then(permission => {
-  if (permission === 'granted') {
-    navigator.serviceWorker.ready.then(registration => {
-      registration.pushManager.subscribe({
+// Request permission and subscribe (main app)
+Notification.requestPermission().then(perm => {
+  if (perm === 'granted') {
+    navigator.serviceWorker.ready.then(reg =>
+      reg.pushManager.subscribe({
         userVisibleOnly: true,
         applicationServerKey: 'YOUR_PUBLIC_KEY'
-      });
-    });
+      })
+    );
   }
 });
 
-// Handle push events (in Service Worker)
+// Handle push event (Service Worker)
 self.addEventListener('push', event => {
-  const data = event.data.json();
-
-  const options = {
-    body: data.body,
-    icon: '/icon-192x192.png',
-    badge: '/badge-72x72.png',
-    data: { url: data.url }
-  };
-
+  const { title, body, url } = event.data.json();
   event.waitUntil(
-    self.registration.showNotification(data.title, options)
+    self.registration.showNotification(title, { body, data: { url } })
   );
 });
 
-// Handle notification click
+// Handle notification click (Service Worker)
 self.addEventListener('notificationclick', event => {
   event.notification.close();
-
   event.waitUntil(
-    clients.matchAll({ type: 'window' })
-      .then(clientList => {
-        // Focus existing window if available
-        for (let client of clientList) {
-          if (client.url === event.notification.data.url && 'focus' in client) {
-            return client.focus();
-          }
-        }
-        // Open new window if not found
-        if (clients.openWindow) {
-          return clients.openWindow(event.notification.data.url);
-        }
-      })
+    clients.matchAll().then(list =>
+      list.find(c => c.url === event.notification.data.url)?.focus()
+      || clients.openWindow(event.notification.data.url)
+    )
   );
 });
 ```
@@ -332,18 +213,13 @@ self.addEventListener('notificationclick', event => {
 ### Checking for Updates
 
 ```javascript
-// In main application
-navigator.serviceWorker.ready.then(registration => {
-  // Check for updates periodically
-  setInterval(() => {
-    registration.update();
-  }, 60000); // Check every minute
+// Check for updates periodically
+navigator.serviceWorker.ready.then(reg => {
+  setInterval(() => reg.update(), 60000);
 });
 
-// Listen for controller change (new Service Worker activated)
+// Reload when new Service Worker is activated
 navigator.serviceWorker.addEventListener('controllerchange', () => {
-  console.log('New Service Worker activated');
-  // Prompt user to reload or reload automatically
   window.location.reload();
 });
 ```
@@ -362,80 +238,26 @@ navigator.serviceWorker.addEventListener('controllerchange', () => {
 ### Real-world Example
 
 ```javascript
-// Complete PWA example
-const CACHE_NAME = 'pwa-v1';
-const STATIC_ASSETS = [
-  '/',
-  '/index.html',
-  '/styles/main.css',
-  '/scripts/app.js',
-  '/offline.html'
-];
-
-const API_CACHE = 'api-cache-v1';
-const RUNTIME_CACHE = 'runtime-v1';
-
-// Install
-self.addEventListener('install', event => {
-  event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then(cache => cache.addAll(STATIC_ASSETS))
-      .then(() => self.skipWaiting())
-  );
-});
-
-// Activate
-self.addEventListener('activate', event => {
-  event.waitUntil(
-    caches.keys()
-      .then(names => {
-        return Promise.all(
-          names
-            .filter(name => ![CACHE_NAME, API_CACHE, RUNTIME_CACHE].includes(name))
-            .map(name => caches.delete(name))
-        );
-      })
-      .then(() => self.clients.claim())
-  );
-});
-
-// Fetch with smart caching
+// Smart PWA caching: Different strategies for different content
 self.addEventListener('fetch', event => {
-  const { request } = event;
-  const url = new URL(request.url);
+  const url = new URL(event.request.url);
 
-  // API requests - network first, cache fallback
+  // API: Network first, fallback to cache
   if (url.pathname.startsWith('/api/')) {
-    event.respondWith(
-      fetch(request)
-        .then(response => {
-          caches.open(API_CACHE).then(cache => {
-            cache.put(request, response.clone());
-          });
-          return response;
-        })
-        .catch(() => caches.match(request))
-        .catch(() => new Response('Offline', { status: 503 }))
+    return event.respondWith(
+      fetch(event.request)
+        .then(res => (caches.open('api-cache').then(c => c.put(event.request, res.clone())), res))
+        .catch(() => caches.match(event.request))
     );
   }
 
-  // Static assets - cache first
+  // Static assets: Cache first, fallback to network
   event.respondWith(
-    caches.match(request)
-      .then(response => {
-        if (response) return response;
-
-        return fetch(request)
-          .then(response => {
-            if (response.status === 200) {
-              caches.open(RUNTIME_CACHE).then(cache => {
-                cache.put(request, response.clone());
-              });
-            }
-            return response;
-          })
-          .catch(() => caches.match('/offline.html'))
-      })
+    caches.match(event.request)
+      .then(res => res || fetch(event.request).then(res =>
+        caches.open('static-cache').then(c => (c.put(event.request, res.clone()), res))
+      ))
+      .catch(() => caches.match('/offline.html'))
   );
 });
 ```

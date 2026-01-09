@@ -31,55 +31,44 @@ inner() searches: unknown (not found anywhere) → ReferenceError
 
 ## Example
 
+### Basic Scope Chain Lookup
+
 ```javascript
-// Global scope
 const globalVar = 'global';
 
 function outer() {
-  // Outer function scope
   const outerVar = 'outer';
 
   function inner() {
-    // Inner function scope
     const innerVar = 'inner';
-
-    // Scope chain access: inner → outer → global
-    console.log(innerVar);    // 'inner' (found in inner scope)
-    console.log(outerVar);    // 'outer' (found in outer scope)
-    console.log(globalVar);   // 'global' (found in global scope)
+    // Lookup chain: inner → outer → global
+    console.log(innerVar);   // 'inner' (found in inner scope)
+    console.log(outerVar);   // 'outer' (found in outer scope)
+    console.log(globalVar);  // 'global' (found in global scope)
   }
 
   inner();
 }
-
 outer();
+```
 
-// ============================================
-// Scope chain with variable shadowing
-// ============================================
+### Variable Shadowing
 
-const x = 'global x';
+```javascript
+const x = 'global';
 
-function shadowExample() {
-  const x = 'function x';  // Shadows global x
-
-  function nestedFn() {
-    const x = 'nested x';  // Shadows outer x
-
-    console.log(x);        // 'nested x' (stops at inner scope)
-  }
-
-  nestedFn();
-  console.log(x);          // 'function x' (outer scope)
+function test() {
+  const x = 'function';  // Shadows global x
+  console.log(x);  // 'function' (stops at inner scope)
 }
 
-shadowExample();
-console.log(x);            // 'global x' (global scope)
+test();
+console.log(x);  // 'global'
+```
 
-// ============================================
-// Scope chain with closures
-// ============================================
+### Closures
 
+```javascript
 function createCounter() {
   let count = 0;  // Captured in scope chain
 
@@ -90,8 +79,8 @@ function createCounter() {
 }
 
 const counter = createCounter();
-console.log(counter());  // 1 (closure accesses count from outer scope)
-console.log(counter());  // 2 (count persists across calls)
+console.log(counter());  // 1
+console.log(counter());  // 2
 console.log(counter());  // 3
 ```
 

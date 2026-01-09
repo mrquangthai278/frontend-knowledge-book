@@ -39,72 +39,42 @@
 ## Example
 
 ```javascript
-// MODEL: Business logic and data
+// MODEL: Data and business logic
 class UserModel {
-  constructor() {
-    this.users = [];
-  }
-
+  constructor() { this.users = []; }
   addUser(name, email) {
-    const user = { id: Date.now(), name, email };
-    this.users.push(user);
-    return user;
+    this.users.push({ id: Date.now(), name, email });
   }
-
   removeUser(id) {
     this.users = this.users.filter(u => u.id !== id);
   }
 }
 
-// VIEWMODEL: Manages state and commands
+// VIEWMODEL: State and commands (no View dependency)
 class UserViewModel {
   constructor(model) {
     this.model = model;
     this.name = '';
     this.email = '';
-    this.userList = [];
-    this.updateUserList();
   }
-
   addUser() {
     if (this.name && this.email) {
       this.model.addUser(this.name, this.email);
       this.name = '';
       this.email = '';
-      this.updateUserList();
     }
   }
-
-  removeUser(id) {
-    this.model.removeUser(id);
-    this.updateUserList();
-  }
-
-  updateUserList() {
-    this.userList = [...this.model.users];
-  }
+  get userList() { return this.model.users; }
 }
 
-// VIEW: HTML with data binding (Vue.js example)
+// VIEW: Vue.js binds ViewModel to UI
 const app = {
-  data() {
-    const model = new UserModel();
-    return {
-      viewModel: new UserViewModel(model)
-    };
-  },
+  data: () => ({ vm: new UserViewModel(new UserModel()) }),
   template: `
     <div>
-      <input v-model="viewModel.name" placeholder="Name">
-      <input v-model="viewModel.email" placeholder="Email">
-      <button @click="viewModel.addUser()">Add User</button>
-
-      <ul>
-        <li v-for="user in viewModel.userList" :key="user.id">
-          {{ user.name }} ({{ user.email }})
-          <button @click="viewModel.removeUser(user.id)">Delete</button>
-        </li>
-      </ul>
+      <input v-model="vm.name" placeholder="Name">
+      <button @click="vm.addUser()">Add</button>
+      <li v-for="u in vm.userList" :key="u.id">{{u.name}}</li>
     </div>
   `
 };

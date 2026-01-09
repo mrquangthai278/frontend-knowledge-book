@@ -45,78 +45,31 @@ With CDN:
 
 ## Example
 
-```javascript
-// Using CDN for third-party libraries
-// Instead of bundling jQuery, serve from CDN
-
-// HTML: Link from CDN
+```html
+<!-- Link CSS/JS from CDN -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/css/bootstrap.min.css">
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
-// Or for CSS frameworks
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/css/bootstrap.min.css">
+<!-- Preload and DNS prefetch for performance -->
+<link rel="dns-prefetch" href="https://cdn.example.com">
+<link rel="preload" href="https://cdn.example.com/fonts/inter.woff2" as="font" crossorigin>
 
-// ============================================
-// Configuring a bundler to use CDN
-// ============================================
+<!-- Cache busting with version or content hash -->
+<script src="https://cdn.example.com/app.js?v=1.2.3"></script>
+<script src="https://cdn.example.com/app.a1b2c3d4.js"></script>
+```
 
-// webpack.config.js
+```javascript
+// Webpack config: Set publicPath to CDN URL
 module.exports = {
-  mode: 'production',
   output: {
-    path: path.resolve(__dirname, 'dist'),
-    publicPath: 'https://cdn.example.com/assets/',  // CDN URL
+    publicPath: 'https://cdn.example.com/assets/',
+    path: path.resolve(__dirname, 'dist')
   },
   externals: {
-    jquery: 'jQuery',  // Load jQuery from CDN, don't bundle
-  },
+    jquery: 'jQuery'  // Load jQuery from CDN, don't bundle
+  }
 };
-
-// ============================================
-// Using CDN for image optimization
-// ============================================
-
-// Original image URL
-// https://example.com/images/photo.jpg (1MB)
-
-// Through CDN with optimization
-// https://cdn.example.com/images/photo.jpg?w=800&h=600&q=80
-// Returns optimized version (50KB)
-
-// ============================================
-// Cache busting with CDN
-// ============================================
-
-// Version in URL for cache busting
-<script src="https://cdn.example.com/app.js?v=1.2.3"></script>
-<script src="https://cdn.example.com/app.js?v=1.2.4"></script>
-
-// Or use content hash
-<script src="https://cdn.example.com/app.a1b2c3d4.js"></script>
-
-// ============================================
-// HTML markup for CDN resources
-// ============================================
-
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <!-- CSS from CDN -->
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/css/bootstrap.min.css">
-</head>
-<body>
-  <div id="app"></div>
-
-  <!-- Preload critical resources -->
-  <link rel="preload" href="https://cdn.example.com/fonts/inter.woff2" as="font" crossorigin>
-
-  <!-- DNS prefetch for CDN domain -->
-  <link rel="dns-prefetch" href="https://cdn.example.com">
-
-  <!-- JavaScript from CDN -->
-  <script src="https://cdn.jsdelivr.net/npm/react@18/umd/react.production.min.js"></script>
-  <script src="https://cdn.example.com/app.js" defer></script>
-</body>
-</html>
 ```
 
 ## Usage

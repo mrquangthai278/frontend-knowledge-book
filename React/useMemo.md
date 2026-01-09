@@ -25,16 +25,9 @@ Render 3: Dependencies changed → Calculate new result → Cache it → Return 
 ```javascript
 import { useMemo, useState } from 'react';
 
-// Example 1: Memoizing expensive calculations
+// Example 1: Memoize expensive filtering
 const FilteredList = ({ items, searchTerm }) => {
-  // Without useMemo - filters on every render
-  // const filtered = items.filter(item =>
-  //   item.name.toLowerCase().includes(searchTerm.toLowerCase())
-  // );
-
-  // With useMemo - only filters when items or searchTerm change
   const filtered = useMemo(() => {
-    console.log('Filtering items...');
     return items.filter(item =>
       item.name.toLowerCase().includes(searchTerm.toLowerCase())
     );
@@ -43,35 +36,24 @@ const FilteredList = ({ items, searchTerm }) => {
   return <ul>{filtered.map(item => <li key={item.id}>{item.name}</li>)}</ul>;
 };
 
-// Example 2: Memoizing object references
+// Example 2: Memoize object to maintain stable reference
 const UserProfile = ({ userId }) => {
-  const [theme, setTheme] = useState('light');
-
-  // Without useMemo - creates new object every render
-  // const userConfig = { userId, preferences: { theme } };
-
-  // With useMemo - same object reference when userId/theme unchanged
   const userConfig = useMemo(() => ({
     userId,
-    preferences: { theme }
-  }), [userId, theme]);
+    preferences: { theme: 'light' }
+  }), [userId]);
 
-  // userConfig object reference stays same, so child won't re-render
-  return <ChildComponent config={userConfig} />;
+  return <Child config={userConfig} />;
 };
 
-// Example 3: Computing derived state
+// Example 3: Compute derived statistics
 const Dashboard = ({ data }) => {
-  const stats = useMemo(() => {
-    console.log('Computing statistics...');
-    return {
-      total: data.reduce((sum, item) => sum + item.value, 0),
-      average: data.reduce((sum, item) => sum + item.value, 0) / data.length,
-      max: Math.max(...data.map(item => item.value))
-    };
-  }, [data]);
+  const stats = useMemo(() => ({
+    total: data.reduce((sum, item) => sum + item.value, 0),
+    max: Math.max(...data.map(item => item.value))
+  }), [data]);
 
-  return <div>Total: {stats.total}, Avg: {stats.average}</div>;
+  return <div>Total: {stats.total}, Max: {stats.max}</div>;
 };
 ```
 

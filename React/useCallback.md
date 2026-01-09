@@ -28,31 +28,24 @@ Render 4: Create new handleClick function B (dependency changed)
 ```javascript
 import { useCallback, useState } from 'react';
 
-// Example 1: Memoizing event handlers
+// Example 1: Memoize handler for child component
 const Parent = () => {
   const [count, setCount] = useState(0);
 
-  // Without useCallback - new function every render
-  // const handleClick = () => setCount(count + 1);
-
-  // With useCallback - same function unless count changes
   const handleClick = useCallback(() => {
     setCount(count + 1);
-  }, [count]);
+  }, [count]); // Same function reference unless count changes
 
-  // Child only re-renders if handleClick reference changes
-  return <ChildButton onClick={handleClick} />;
+  return <MemoButton onClick={handleClick} />;
 };
 
 // Example 2: useCallback with multiple dependencies
 const SearchComponent = ({ onSearch }) => {
   const [query, setQuery] = useState('');
-  const [filters, setFilters] = useState({});
 
-  // Memoized search handler - recalculates if query or filters change
   const handleSearch = useCallback(() => {
-    onSearch({ query, filters });
-  }, [query, filters, onSearch]); // All dependencies included
+    onSearch(query);
+  }, [query, onSearch]); // Include all dependencies
 
   return (
     <div>
@@ -62,48 +55,16 @@ const SearchComponent = ({ onSearch }) => {
   );
 };
 
-// Example 3: useCallback in useEffect dependency array
-const Timer = ({ delay }) => {
+// Example 3: useCallback with React.memo
+const MemoButton = React.memo(({ onClick }) => (
+  <button onClick={onClick}>Click me</button>
+));
+
+const Counter = () => {
   const [count, setCount] = useState(0);
-
-  // Without useCallback - effect runs on every render (infinite loop risk)
-  // const startTimer = () => setTimeout(() => setCount(count + 1), delay);
-
-  // With useCallback - effect only runs when delay changes
-  const startTimer = useCallback(() => {
-    setTimeout(() => setCount(count + 1), delay);
-  }, [delay, count]);
-
-  useEffect(() => {
-    startTimer();
-  }, [startTimer]); // Safe to include startTimer in dependencies
-
-  return <div>{count}</div>;
-};
-
-// Example 4: Combining useCallback with React.memo
-const MemoizedButton = React.memo(({ onClick, label }) => {
-  console.log(`Rendering ${label}`);
-  return <button onClick={onClick}>{label}</button>;
-});
-
-const App = () => {
-  const [count, setCount] = useState(0);
-  const [name, setName] = useState('');
-
-  // Memoized callbacks - only change when their dependencies change
   const increment = useCallback(() => setCount(count + 1), [count]);
-  const decrement = useCallback(() => setCount(count - 1), [count]);
 
-  // These components don't re-render when name changes
-  return (
-    <div>
-      <input value={name} onChange={e => setName(e.target.value)} />
-      <MemoizedButton onClick={increment} label="+" />
-      <MemoizedButton onClick={decrement} label="-" />
-      <p>Count: {count}</p>
-    </div>
-  );
+  return <MemoButton onClick={increment} />; // Only re-renders if increment reference changes
 };
 ```
 
